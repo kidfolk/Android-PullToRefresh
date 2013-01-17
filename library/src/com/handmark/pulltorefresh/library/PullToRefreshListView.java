@@ -22,7 +22,6 @@ import android.graphics.Canvas;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.util.AttributeSet;
-import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -59,17 +58,12 @@ public class PullToRefreshListView extends PullToRefreshAdapterViewBase<ListView
 	}
 
 	@Override
-	public ContextMenuInfo getContextMenuInfo() {
-		return ((InternalListView) getRefreshableView()).getContextMenuInfo();
-	}
-
-	@Override
 	public final Orientation getPullToRefreshScrollDirection() {
 		return Orientation.VERTICAL;
 	}
 
 	@Override
-	void onRefreshing(final boolean doScroll) {
+	protected void onRefreshing(final boolean doScroll) {
 		/**
 		 * If we're not showing the Refreshing view, or the list is empty, the
 		 * the header/footer views won't show so we use the normal method.
@@ -133,7 +127,7 @@ public class PullToRefreshListView extends PullToRefreshAdapterViewBase<ListView
 	}
 
 	@Override
-	void onReset() {
+	protected void onReset() {
 		/**
 		 * If the extras are not enabled, just call up to super and return.
 		 */
@@ -315,10 +309,6 @@ public class PullToRefreshListView extends PullToRefreshAdapterViewBase<ListView
 				e.printStackTrace();
 				return false;
 			}
-		}
-
-		public ContextMenuInfo getContextMenuInfo() {
-			return super.getContextMenuInfo();
 		}
 
 		@Override

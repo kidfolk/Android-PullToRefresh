@@ -15,7 +15,16 @@ public class LoadingLayoutProxy implements ILoadingLayout {
 		mLoadingLayouts = new HashSet<LoadingLayout>();
 	}
 
-	void addLayout(LoadingLayout layout) {
+	/**
+	 * This allows you to add extra LoadingLayout instances to this proxy. This
+	 * is only necessary if you keep your own instances, and want to have them
+	 * included in any
+	 * {@link PullToRefreshBase#createLoadingLayoutProxy(boolean, boolean)
+	 * createLoadingLayoutProxy(...)} calls.
+	 * 
+	 * @param layout - LoadingLayout to have included.
+	 */
+	public void addLayout(LoadingLayout layout) {
 		if (null != layout) {
 			mLoadingLayouts.add(layout);
 		}
@@ -52,7 +61,7 @@ public class LoadingLayoutProxy implements ILoadingLayout {
 	@Override
 	public void setReleaseLabel(CharSequence label) {
 		for (LoadingLayout layout : mLoadingLayouts) {
-			layout.setRefreshingLabel(label);
+			layout.setReleaseLabel(label);
 		}
 	}
 

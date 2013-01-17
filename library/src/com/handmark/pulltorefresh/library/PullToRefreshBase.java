@@ -47,6 +47,8 @@ public abstract class PullToRefreshBase<T extends View> extends LinearLayout imp
 	// ===========================================================
 
 	static final boolean DEBUG = true;
+	
+	static final boolean USE_HW_LAYERS = false;
 
 	static final String LOG_TAG = "PullToRefresh";
 
@@ -546,89 +548,6 @@ public abstract class PullToRefreshBase<T extends View> extends LinearLayout imp
 	 */
 	public abstract Orientation getPullToRefreshScrollDirection();
 
-	/**
-	 * Called when the UI has been to be updated to be in the
-	 * {@link State#PULL_TO_REFRESH} state.
-	 */
-	void onPullToRefresh() {
-		switch (mCurrentMode) {
-			case PULL_FROM_END:
-				mFooterLayout.pullToRefresh();
-				break;
-			case PULL_FROM_START:
-				mHeaderLayout.pullToRefresh();
-				break;
-			default:
-				// NO-OP
-				break;
-		}
-	}
-
-	/**
-	 * Called when the UI has been to be updated to be in the
-	 * {@link State#REFRESHING} or {@link State#MANUAL_REFRESHING} state.
-	 * 
-	 * @param doScroll - Whether the UI should scroll for this event.
-	 */
-	void onRefreshing(final boolean doScroll) {
-		if (mMode.showHeaderLoadingLayout()) {
-			mHeaderLayout.refreshing();
-		}
-		if (mMode.showFooterLoadingLayout()) {
-			mFooterLayout.refreshing();
-		}
-
-		if (doScroll) {
-			if (mShowViewWhileRefreshing) {
-				switch (mCurrentMode) {
-					case MANUAL_REFRESH_ONLY:
-					case PULL_FROM_END:
-						smoothScrollTo(getFooterSize());
-						break;
-					default:
-					case PULL_FROM_START:
-						smoothScrollTo(-getHeaderSize());
-						break;
-				}
-			} else {
-				smoothScrollTo(0);
-			}
-		}
-	}
-
-	/**
-	 * Called when the UI has been to be updated to be in the
-	 * {@link State#RELEASE_TO_REFRESH} state.
-	 */
-	void onReleaseToRefresh() {
-		switch (mCurrentMode) {
-			case PULL_FROM_END:
-				mFooterLayout.releaseToRefresh();
-				break;
-			case PULL_FROM_START:
-				mHeaderLayout.releaseToRefresh();
-				break;
-			default:
-				// NO-OP
-				break;
-		}
-	}
-
-	/**
-	 * Called when the UI has been to be updated to be in the
-	 * {@link State#RESET} state.
-	 */
-	void onReset() {
-		mIsBeingDragged = false;
-		mLayoutVisibilityChangesEnabled = true;
-
-		// Always reset both layouts, just in case...
-		mHeaderLayout.reset();
-		mFooterLayout.reset();
-
-		smoothScrollTo(0);
-	}
-
 	final void setState(State state, final boolean... params) {
 		mState = state;
 		if (DEBUG) {
@@ -759,21 +678,21 @@ public abstract class PullToRefreshBase<T extends View> extends LinearLayout imp
 
 	/**
 	 * Implemented by derived class to return whether the View is in a state
-	 * where the user can Pull to Refresh by scrolling from the start.
-	 * 
-	 * @return true if the View is currently the correct state (for example, top
-	 *         of a ListView)
-	 */
-	protected abstract boolean isReadyForPullStart();
-
-	/**
-	 * Implemented by derived class to return whether the View is in a state
 	 * where the user can Pull to Refresh by scrolling from the end.
 	 * 
 	 * @return true if the View is currently in the correct state (for example,
 	 *         bottom of a ListView)
 	 */
 	protected abstract boolean isReadyForPullEnd();
+
+	/**
+	 * Implemented by derived class to return whether the View is in a state
+	 * where the user can Pull to Refresh by scrolling from the start.
+	 * 
+	 * @return true if the View is currently the correct state (for example, top
+	 *         of a ListView)
+	 */
+	protected abstract boolean isReadyForPullStart();
 
 	/**
 	 * Called by {@link #onRestoreInstanceState(Parcelable)} so that derivative
@@ -791,6 +710,89 @@ public abstract class PullToRefreshBase<T extends View> extends LinearLayout imp
 	 * @param saveState - Bundle to be updated with saved state.
 	 */
 	protected void onPtrSaveInstanceState(Bundle saveState) {
+	}
+
+	/**
+	 * Called when the UI has been to be updated to be in the
+	 * {@link State#PULL_TO_REFRESH} state.
+	 */
+	protected void onPullToRefresh() {
+		switch (mCurrentMode) {
+			case PULL_FROM_END:
+				mFooterLayout.pullToRefresh();
+				break;
+			case PULL_FROM_START:
+				mHeaderLayout.pullToRefresh();
+				break;
+			default:
+				// NO-OP
+				break;
+		}
+	}
+
+	/**
+	 * Called when the UI has been to be updated to be in the
+	 * {@link State#REFRESHING} or {@link State#MANUAL_REFRESHING} state.
+	 * 
+	 * @param doScroll - Whether the UI should scroll for this event.
+	 */
+	protected void onRefreshing(final boolean doScroll) {
+		if (mMode.showHeaderLoadingLayout()) {
+			mHeaderLayout.refreshing();
+		}
+		if (mMode.showFooterLoadingLayout()) {
+			mFooterLayout.refreshing();
+		}
+
+		if (doScroll) {
+			if (mShowViewWhileRefreshing) {
+				switch (mCurrentMode) {
+					case MANUAL_REFRESH_ONLY:
+					case PULL_FROM_END:
+						smoothScrollTo(getFooterSize());
+						break;
+					default:
+					case PULL_FROM_START:
+						smoothScrollTo(-getHeaderSize());
+						break;
+				}
+			} else {
+				smoothScrollTo(0);
+			}
+		}
+	}
+
+	/**
+	 * Called when the UI has been to be updated to be in the
+	 * {@link State#RELEASE_TO_REFRESH} state.
+	 */
+	protected void onReleaseToRefresh() {
+		switch (mCurrentMode) {
+			case PULL_FROM_END:
+				mFooterLayout.releaseToRefresh();
+				break;
+			case PULL_FROM_START:
+				mHeaderLayout.releaseToRefresh();
+				break;
+			default:
+				// NO-OP
+				break;
+		}
+	}
+
+	/**
+	 * Called when the UI has been to be updated to be in the
+	 * {@link State#RESET} state.
+	 */
+	protected void onReset() {
+		mIsBeingDragged = false;
+		mLayoutVisibilityChangesEnabled = true;
+
+		// Always reset both layouts, just in case...
+		mHeaderLayout.reset();
+		mFooterLayout.reset();
+
+		smoothScrollTo(0);
 	}
 
 	@Override
@@ -840,6 +842,10 @@ public abstract class PullToRefreshBase<T extends View> extends LinearLayout imp
 
 	@Override
 	protected final void onSizeChanged(int w, int h, int oldw, int oldh) {
+		if (DEBUG) {
+			Log.d(LOG_TAG, String.format("onSizeChanged. W: %d, H: %d", w, h));
+		}
+
 		super.onSizeChanged(w, h, oldw, oldh);
 
 		// We need to update the header/footer when our size changes
@@ -847,6 +853,17 @@ public abstract class PullToRefreshBase<T extends View> extends LinearLayout imp
 
 		// Update the Refreshable View layout
 		refreshRefreshableViewSize(w, h);
+
+		/**
+		 * As we're currently in a Layout Pass, we need to schedule another one
+		 * to layout any changes we've made here
+		 */
+		post(new Runnable() {
+			@Override
+			public void run() {
+				requestLayout();
+			}
+		});
 	}
 
 	/**
@@ -902,17 +919,13 @@ public abstract class PullToRefreshBase<T extends View> extends LinearLayout imp
 	}
 
 	protected final void refreshRefreshableViewSize(int width, int height) {
-		if (DEBUG) {
-			Log.d(LOG_TAG, String.format("refreshRefreshableViewSize. W: %d, H: %d", width, height));
-		}
-
 		// We need to set the Height of the Refreshable View to the same as
 		// this layout
 		LinearLayout.LayoutParams lp = (LinearLayout.LayoutParams) mRefreshableViewWrapper.getLayoutParams();
 
 		switch (getPullToRefreshScrollDirection()) {
 			case HORIZONTAL:
-				if (lp.weight != width) {
+				if (lp.width != width) {
 					lp.width = width;
 					mRefreshableViewWrapper.requestLayout();
 				}
@@ -948,12 +961,15 @@ public abstract class PullToRefreshBase<T extends View> extends LinearLayout imp
 			}
 		}
 
-		/**
-		 * Use a Hardware Layer on the Refreshable View if we've scrolled at
-		 * all. We don't use them on the Header/Footer Views as they change
-		 * often, which would negate any HW layer performance boost.
-		 */
-		ViewCompat.setLayerType(mRefreshableViewWrapper, value != 0 ? View.LAYER_TYPE_HARDWARE : View.LAYER_TYPE_NONE);
+		if (USE_HW_LAYERS) {
+			/**
+			 * Use a Hardware Layer on the Refreshable View if we've scrolled at
+			 * all. We don't use them on the Header/Footer Views as they change
+			 * often, which would negate any HW layer performance boost.
+			 */
+			ViewCompat.setLayerType(mRefreshableViewWrapper, value != 0 ? View.LAYER_TYPE_HARDWARE
+					: View.LAYER_TYPE_NONE);
+		}
 
 		switch (getPullToRefreshScrollDirection()) {
 			case VERTICAL:
@@ -1372,14 +1388,14 @@ public abstract class PullToRefreshBase<T extends View> extends LinearLayout imp
 		/**
 		 * @return true if this mode wants the Loading Layout Header to be shown
 		 */
-		boolean showHeaderLoadingLayout() {
+		public boolean showHeaderLoadingLayout() {
 			return this == PULL_FROM_START || this == BOTH;
 		}
 
 		/**
 		 * @return true if this mode wants the Loading Layout Footer to be shown
 		 */
-		boolean showFooterLoadingLayout() {
+		public boolean showFooterLoadingLayout() {
 			return this == PULL_FROM_END || this == BOTH || this == MANUAL_REFRESH_ONLY;
 		}
 
